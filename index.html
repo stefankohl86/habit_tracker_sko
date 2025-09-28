@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Tracker Pro V2</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- PWA Meta Tags für iPhone -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Habit Tracker Pro">
+    <meta name="theme-color" content="#3b82f6">
+    
+    <!-- Icons für iPhone -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='80'>🎯</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='80'>🎯</text></svg>">
+    
+    <style>
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in-up { animation: fadeInUp 0.5s ease-out; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(-25%); animation-timing-function: cubic-bezier(0.8,0,1,1); } 50% { transform: none; animation-timing-function: cubic-bezier(0,0,0.2,1); } }
+        .animate-bounce { animation: bounce 1s infinite; }
+        .hover\:scale-102:hover { transform: scale(1.02); }
+        .hover\:scale-105:hover { transform: scale(1.05); }
+        .hover\:scale-110:hover { transform: scale(1.1); }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const HabitTracker = () => {
+            const [habits, setHabits] = useState([]);
+            const [selectedDate, setSelectedDate] = useState(new Date());
+            const [view, setView] = useState('today');
+            const [showAddHabit, setShowAddHabit] = useState(false);
+            const [darkMode, setDarkMode] = useState(false);
+            const [moods, setMoods] = useState({});
+            const [selectedMood, setSelectedMood] = useState(null);
+            const [moodNote, setMoodNote] = useState('');
+            const [newHabit, setNewHabit] = useState({
+                name: '',
+                category: 'health',
+                target: 1,
+                unit: 'mal',
+                reminderTime: '09:00',
+                color: 'blue'
+            });
+
+            const moodTypes = {
+                excellent: { icon: '🤩', name: 'Ausgezeichnet', color: 'text-green-500', bgColor: 'bg-green-100' },
+                good: { icon: '😊', name: 'Gut', color: 'text-blue-500', bgColor: 'bg-blue-100' },
+                okay: { icon: '😐', name: 'Okay', color: 'text-yellow-500', bgColor: 'bg-yellow-100' },
+                bad: { icon: '😞', name: 'Schlecht', color: 'text-orange-500', bgColor: 'bg-orange-100' },
+                terrible: { icon: '😢', name: 'Furchtbar', color: 'text-red-500', bgColor: 'bg-red-100' }
+            };
+
+            useEffect(() => {
+                const today = new Date().toISOString().split('T')[0];
+                const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+                
+                setHabits([
+                    {
+                        id: 1,
+                        name: 'Wasser trinken',
+                        category: 'health',
+                        target: 8,
+                        unit: 'Gläser',
+                        color: 'blue',
+                        reminderTime: '09:00',
+                        completions: {
+                            [today]: { completed: 5, target: 8 },
+                            [yesterday]: { completed: 8, target: 8 },
+                            '2025-09-25': { completed: 6, target: 8 },
+                            '2025-09-24': { completed: 8, target: 8 },
+                            '2025-09-23': { completed: 4, target: 8 }
+                        }
+                    },
+                    {
+                        id: 2,
+                        name: 'Sport treiben',
+                        category: 'fitness',
+                        target: 1,
+                        unit: 'mal',
+                        color: 'green',
+                        reminderTime: '18:00',
+                        completions: {
+                            [today]: { completed: 0, target: 1 },
+                            [yesterday]: { completed: 1, target: 1 },
+                            '2025-09-25': { completed: 1, target: 1 },
+                            '2025-09-24': { completed: 0, target: 1 },
+                            '2025-09-23': { completed: 1, target: 1 }
+                        }
+                    },
+                    {
+                        id: 3,
+                        name: 'Lesen',
+                        category: 'learning',
+                        target: 30,
+                        unit: 'Minuten',
+                        color: 'purple',
+                        reminderTime: '20:00',
+                        completions: {
+                            [today]: { completed: 15, target: 30 },
+                            [yesterday]: { completed: 30, target: 30 },
+                            '2025-09-25': { completed: 45, target: 30 },
+                            '2025-09-24': { completed: 20, target: 30 },
+                            '2025-09-23': { completed: 30, target: 30 }
+                        }
+                    }
+                ]);
+
+                setMoods({
+                    [today]: { mood: 'good', note: 'Produktiver Tag!' },
+                    [yesterday]: { mood: 'excellent', note: 'Alles super gelaufen' },
+                    '2025-09-25': { mood: 'okay', note: 'Durchschnittlicher Tag' },
+                    '2025-09-24': { mood: 'bad', note: 'Stressiger Arbeitstag' },
+                    '2025-09-23': { mood: 'good', note: 'Gutes Workout heute' }
+                });
+            }, []);
+
+            const categories = {
+                health: { name: 'Gesundheit', icon: '🏥', color: 'bg-green-100 text-green-800' },
+                fitness: { name: 'Fitness', icon: '💪', color: 'bg-blue-100 text-blue-800' },
+                learning: { name: 'Lernen', icon: '📚', color: 'bg-purple-100 text-purple-800' },
+                productivity: { name: 'Produktivität', icon: '⚡', color: 'bg-yellow-100 text-yellow-800' },
+                mindfulness: { name: 'Achtsamkeit', icon: '🧘', color: 'bg-indigo-100 text-indigo-800' }
+            };
+
+            const colors = {
+                blue: 'bg-blue-500',
+                green: 'bg-green-500',
+                purple: 'bg-purple-500',
+                red: 'bg-red-500',
+                yellow: 'bg-yellow-500',
+                indigo: 'bg-indigo-500'
+            };
+
+            const addHabit = () => {
+                if (newHabit.name.trim()) {
+                    const habit = {
+                        id: Date.now(),
+                        ...newHabit,
+                        completions: {}
+                    };
+                    setHabits([...habits, habit]);
+                    setNewHabit({
+                        name: '',
+                        category: 'health',
+                        target: 1,
+                        unit: 'mal',
+                        reminderTime: '09:00',
+                        color: 'blue'
+                    });
+                    setShowAddHabit(false);
+                }
+            };
+
+            const updateHabitProgress = (habitId, increment = true) => {
+                const today = selectedDate.toISOString().split('T')[0];
+                setHabits(habits.map(habit => {
+                    if (habit.id === habitId) {
+                        const currentCompletion = habit.completions[today] || { completed: 0, target: habit.target };
+                        const newCompleted = increment 
+                            ? Math.min(currentCompletion.completed + 1, habit.target)
+                            : Math.max(currentCompletion.completed - 1, 0);
+                        
+                        return {
+                            ...habit,
+                            completions: {
+                                ...habit.completions,
+                                [today]: { ...currentCompletion, completed: newCompleted }
+                            }
+                        };
+                    }
+                    return habit;
+                }));
+            };
+
+            const saveMood = (moodType) => {
+                const dateStr = selectedDate.toISOString().split('T')[0];
+                setMoods({
+                    ...moods,
+                    [dateStr]: { mood: moodType, note: moodNote }
+                });
+                setSelectedMood(null);
+                setMoodNote('');
+            };
+
+            const renderTodayView = () => {
+                const today = selectedDate.toISOString().split('T')[0];
+                const isToday = today === new Date().toISOString().split('T')[0];
+                const dayMood = moods[today];
+
+                return (
+                    <div className="space-y-4 animate-fade-in-up">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                                {isToday ? 'Heute' : selectedDate.toLocaleDateString('de-DE')}
+                            </h2>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setSelectedDate(new Date(selectedDate.getTime() - 86400000))}
+                                    className={`p-2 rounded-lg transition-all hover:scale-105 ${darkMode ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'}`}
+                                >
+                                    ‹
+                                </button>
+                                <button
+                                    onClick={() => setSelectedDate(new Date(selectedDate.getTime() + 86400000))}
+                                    className={`p-2 rounded-lg transition-all hover:scale-105 ${darkMode ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'}`}
+                                >
+                                    ›
+                                </button>
+                            </div>
+                        </div>
+
+                        {dayMood && (
+                            <div className={`p-4 rounded-2xl shadow-lg flex items-center gap-4 transition-all hover:shadow-xl ${
+                                darkMode ? 'bg-gray-800' : 'bg-white'
+                            }`}>
+                                <span className="text-4xl animate-bounce">{moodTypes[dayMood.mood]?.icon}</span>
+                                <div>
+                                    <p className={`font-medium ${moodTypes[dayMood.mood]?.color}`}>
+                                        Stimmung: {moodTypes[dayMood.mood]?.name}
+                                    </p>
+                                    {dayMood.note && (
+                                        <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                            "{dayMood.note}"
+                                        </p>
+                                    )}
+                                </div>
+                                <button
+                                    onClick={() => setView('mood')}
+                                    className="ml-auto px-3 py-1 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all hover:scale-105"
+                                >
+                                    Bearbeiten
+                                </button>
+                            </div>
+                        )}
+
+                        {habits.map((habit, index) => {
+                            const completion = habit.completions[today] || { completed: 0, target: habit.target };
+                            const percentage = (completion.completed / completion.target) * 100;
+                            const isComplete = completion.completed >= completion.target;
+
+                            return (
+                                <div
+                                    key={habit.id}
+                                    className={`p-6 rounded-2xl shadow-lg border transition-all duration-300 hover:shadow-xl hover:scale-102 ${
+                                        darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
+                                    } ${isComplete ? 'ring-2 ring-green-500' : ''}`}
+                                >
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-4 h-4 rounded-full ${colors[habit.color]} animate-pulse`}></div>
+                                            <h3 className={`font-semibold text-lg ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                                                {habit.name}
+                                            </h3>
+                                            <span className={`px-2 py-1 rounded-full text-xs ${categories[habit.category].color}`}>
+                                                {categories[habit.category].icon} {categories[habit.category].name}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="flex items-center gap-1 text-orange-500">
+                                                🔥 3
+                                            </span>
+                                            <span className="text-sm text-gray-500">🕘 {habit.reminderTime}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="mb-4">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                                {completion.completed} von {completion.target} {habit.unit}
+                                            </span>
+                                            <span className={`text-sm font-medium ${
+                                                isComplete ? 'text-green-600' : darkMode ? 'text-gray-300' : 'text-gray-600'
+                                            }`}>
+                                                {Math.round(percentage)}%
+                                            </span>
+                                        </div>
+                                        <div className={`w-full h-3 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                                            <div
+                                                className={`h-3 rounded-full transition-all duration-1000 ${
+                                                    isComplete ? 'bg-green-500' : colors[habit.color]
+                                                }`}
+                                                style={{ width: `${Math.min(percentage, 100)}%` }}
+                                            ></div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => updateHabitProgress(habit.id, false)}
+                                                disabled={completion.completed === 0}
+                                                className="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-110"
+                                            >
+                                                ✕
+                                            </button>
+                                            <button
+                                                onClick={() => updateHabitProgress(habit.id, true)}
+                                                disabled={completion.completed >= completion.target}
+                                                className="p-2 rounded-lg bg-green-100 text-green-600 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-110"
+                                            >
+                                                +
+                                            </button>
+                                        </div>
+                                        
+                                        {isComplete && (
+                                            <div className="flex items-center gap-2 text-green-600 animate-bounce">
+                                                ✓ <span className="font-medium">Geschafft! 🎉</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                );
+            };
+
+            const renderMoodView = () => {
+                const today = selectedDate.toISOString().split('T')[0];
+                const currentMood = moods[today];
+
+                return (
+                    <div className="space-y-6 animate-fade-in-up">
+                        <div className="flex items-center justify-between">
+                            <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                                Stimmung Tracker 🎭
+                            </h2>
+                        </div>
+
+                        <div className={`text-center ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                            {selectedDate.toLocaleDateString('de-DE', { 
+                                weekday: 'long', 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric' 
+                            })}
+                        </div>
+
+                        {currentMood && (
+                            <div className={`p-6 rounded-2xl shadow-lg text-center transition-all hover:shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                                <div className="text-6xl mb-4 animate-bounce">{moodTypes[currentMood.mood]?.icon}</div>
+                                <h3 className={`text-2xl font-bold mb-2 ${moodTypes[currentMood.mood]?.color}`}>
+                                    {moodTypes[currentMood.mood]?.name}
+                                </h3>
+                                {currentMood.note && (
+                                    <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                        "{currentMood.note}"
+                                    </p>
+                                )}
+                            </div>
+                        )}
+
+                        <div className={`p-6 rounded-2xl shadow-lg ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                            <h3 className={`text-xl font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                                Wie fühlst du dich heute?
+                            </h3>
+                            
+                            <div className="grid grid-cols-5 gap-3 mb-6">
+                                {Object.entries(moodTypes).map(([key, mood]) => (
+                                    <button
+                                        key={key}
+                                        onClick={() => setSelectedMood(key)}
+                                        className={`p-4 rounded-xl text-center transition-all duration-200 hover:scale-110 ${
+                                            selectedMood === key 
+                                                ? `${mood.bgColor} ring-2 ring-blue-500 scale-105` 
+                                                : darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-50 hover:bg-gray-100'
+                                        }`}
+                                    >
+                                        <div className="text-3xl mb-2">{mood.icon}</div>
+                                        <div className={`text-sm font-medium ${
+                                            selectedMood === key ? mood.color : darkMode ? 'text-white' : 'text-gray-800'
+                                        }`}>
+                                            {mood.name}
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+
+                            {selectedMood && (
+                                <div className="space-y-4">
+                                    <textarea
+                                        placeholder="Notiz zu deiner Stimmung (optional)..."
+                                        value={moodNote}
+                                        onChange={(e) => setMoodNote(e.target.value)}
+                                        className={`w-full p-4 rounded-xl border resize-none h-24 ${
+                                            darkMode 
+                                                ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                                                : 'bg-gray-50 border-gray-200 placeholder-gray-500'
+                                        }`}
+                                    />
+                                    <div className="flex gap-3">
+                                        <button
+                                            onClick={() => {
+                                                setSelectedMood(null);
+                                                setMoodNote('');
+                                            }}
+                                            className={`flex-1 py-3 rounded-xl border transition-all ${
+                                                darkMode 
+                                                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
+                                                    : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+                                            }`}
+                                        >
+                                            Abbrechen
+                                        </button>
+                                        <button
+                                            onClick={() => saveMood(selectedMood)}
+                                            className="flex-1 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all"
+                                        >
+                                            Speichern
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            };
+
+            return (
+                <div className={`min-h-screen transition-all duration-500 ${
+                    darkMode 
+                        ? 'bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900' 
+                        : 'bg-gradient-to-br from-blue-50 via-white to-purple-50'
+                }`}>
+                    <div className="max-w-6xl mx-auto px-4 py-8">
+                        <div className={`rounded-2xl shadow-xl p-6 mb-8 transition-all hover:shadow-2xl ${
+                            darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'
+                        }`}>
+                            <div className="flex justify-between items-center mb-6">
+                                <div>
+                                    <h1 className={`text-4xl font-bold mb-2 ${
+                                        darkMode ? 'text-white' : 'text-gray-800'
+                                    }`}>
+                                        Habit Tracker Pro V2 🎯
+                                    </h1>
+                                    <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                        Verfolge deine Gewohnheiten und Stimmungen
+                                    </p>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => setShowAddHabit(true)}
+                                        className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:scale-105"
+                                    >
+                                        + Neue Gewohnheit
+                                    </button>
+                                    <button
+                                        onClick={() => setDarkMode(!darkMode)}
+                                        className={`p-3 rounded-xl transition-all duration-300 hover:scale-110 ${
+                                            darkMode 
+                                                ? 'bg-yellow-500 text-yellow-900 hover:bg-yellow-400' 
+                                                : 'bg-gray-800 text-yellow-400 hover:bg-gray-700'
+                                        }`}
+                                    >
+                                        {darkMode ? '☀️' : '🌙'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-2 flex-wrap">
+                                {[
+                                    { key: 'today', label: 'Heute', icon: '🏠' },
+                                    { key: 'calendar', label: 'Kalender', icon: '📅' },
+                                    { key: 'mood', label: 'Stimmung', icon: '❤️' },
+                                    { key: 'stats', label: 'Statistiken', icon: '📊' }
+                                ].map(({ key, label, icon }) => (
+                                    <button
+                                        key={key}
+                                        onClick={() => setView(key)}
+                                        className={`px-4 py-2 rounded-xl transition-all duration-300 flex items-center gap-2 hover:scale-105 ${
+                                            view === key
+                                                ? 'bg-blue-500 text-white shadow-lg scale-105'
+                                                : darkMode 
+                                                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                        }`}
+                                    >
+                                        {icon} {label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {view === 'today' && renderTodayView()}
+                        {view === 'mood' && renderMoodView()}
+                        {view === 'calendar' && (
+                            <div className="text-center py-16 animate-fade-in-up">
+                                <div className="text-6xl mb-4">📅</div>
+                                <h2 className={`text-2xl font-bold mb-8 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                                    Kalenderansicht - Coming Soon!
+                                </h2>
+                            </div>
+                        )}
+                        {view === 'stats' && (
+                            <div className="text-center py-16 animate-fade-in-up">
+                                <div className="text-6xl mb-4">📊</div>
+                                <h2 className={`text-2xl font-bold mb-8 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                                    Statistiken - Coming Soon!
+                                </h2>
+                            </div>
+                        )}
+
+                        {showAddHabit && (
+                            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                                <div className={`max-w-md w-full rounded-2xl p-6 shadow-2xl ${
+                                    darkMode ? 'bg-gray-800' : 'bg-white'
+                                }`}>
+                                    <h3 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                                        Neue Gewohnheit hinzufügen
+                                    </h3>
+                                    
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                Name der Gewohnheit
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={newHabit.name}
+                                                onChange={(e) => setNewHabit({...newHabit, name: e.target.value})}
+                                                className={`w-full px-4 py-2 rounded-xl border ${
+                                                    darkMode 
+                                                        ? 'bg-gray-700 border-gray-600 text-white' 
+                                                        : 'bg-gray-50 border-gray-200'
+                                                }`}
+                                                placeholder="z.B. 10.000 Schritte gehen"
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                    Ziel
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    value={newHabit.target}
+                                                    onChange={(e) => setNewHabit({...newHabit, target: parseInt(e.target.value) || 1})}
+                                                    className={`w-full px-4 py-2 rounded-xl border ${
+                                                        darkMode 
+                                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                                            : 'bg-gray-50 border-gray-200'
+                                                    }`}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                    Einheit
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={newHabit.unit}
+                                                    onChange={(e) => setNewHabit({...newHabit, unit: e.target.value})}
+                                                    className={`w-full px-4 py-2 rounded-xl border ${
+                                                        darkMode 
+                                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                                            : 'bg-gray-50 border-gray-200'
+                                                    }`}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                Kategorie
+                                            </label>
+                                            <select
+                                                value={newHabit.category}
+                                                onChange={(e) => setNewHabit({...newHabit, category: e.target.value})}
+                                                className={`w-full px-4 py-2 rounded-xl border ${
+                                                    darkMode 
+                                                        ? 'bg-gray-700 border-gray-600 text-white' 
+                                                        : 'bg-gray-50 border-gray-200'
+                                                }`}
+                                            >
+                                                {Object.entries(categories).map(([key, cat]) => (
+                                                    <option key={key} value={key}>{cat.icon} {cat.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                Farbe
+                                            </label>
+                                            <div className="flex gap-2">
+                                                {Object.entries(colors).map(([colorName, colorClass]) => (
+                                                    <button
+                                                        key={colorName}
+                                                        type="button"
+                                                        onClick={() => setNewHabit({...newHabit, color: colorName})}
+                                                        className={`w-8 h-8 rounded-full ${colorClass} ${
+                                                            newHabit.color === colorName ? 'ring-2 ring-gray-400 scale-110' : ''
+                                                        }`}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-3 mt-6">
+                                        <button
+                                            onClick={() => setShowAddHabit(false)}
+                                            className={`flex-1 px-4 py-3 rounded-xl border transition-all ${
+                                                darkMode 
+                                                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
+                                                    : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+                                            }`}
+                                        >
+                                            Abbrechen
+                                        </button>
+                                        <button
+                                            onClick={addHabit}
+                                            className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg"
+                                        >
+                                            Hinzufügen
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(React.createElement(HabitTracker), document.getElementById('root'));
+    </script>
+</body>
+</html>
