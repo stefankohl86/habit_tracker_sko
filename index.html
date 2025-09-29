@@ -1,41 +1,10 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Habit skstudiohaus</title>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- PWA Meta Tags für iPhone -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Habit skstudiohaus">
-    <meta name="theme-color" content="#3b82f6">
-    
-    <!-- Icons für iPhone -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='80'>🎯</text></svg>">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='80'>🎯</text></svg>">
-    
-    <style>
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in-up { animation: fadeInUp 0.5s ease-out; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        @keyframes bounce { 0%, 100% { transform: translateY(-25%); animation-timing-function: cubic-bezier(0.8,0,1,1); } 50% { transform: none; animation-timing-function: cubic-bezier(0,0,0.2,1); } }
-        .animate-bounce { animation: bounce 1s infinite; }
-        .hover\:scale-102:hover { transform: scale(1.02); }
-        .hover\:scale-105:hover { transform: scale(1.05); }
-        .hover\:scale-110:hover { transform: scale(1.1); }
-    </style>
-</head>
-<body>
-    <div id="root"></div>
-    
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+import React, { useState, useEffect } from 'react';
+import { 
+  Plus, Check, X, Calendar, TrendingUp, Award, Bell, 
+  BarChart3, Target, Flame, Clock, Settings, Trash2,
+  ChevronLeft, ChevronRight, Moon, Sun, Smile, Frown,
+  Meh, Heart, Zap, Coffee, Home, Edit3, Save
+} from 'lucide-react';
 
 const HabitTracker = () => {
   const [habits, setHabits] = useState([]);
@@ -980,5 +949,4 @@ const HabitTracker = () => {
   );
 };
 
-        ReactDOM.render(React.createElement(HabitTracker), document.getElementById('root'));
-
+export default HabitTracker;
