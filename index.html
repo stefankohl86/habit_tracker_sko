@@ -491,3 +491,245 @@
                 return (
                     <div className="space-y-6 animate-fade-in">
                         <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Statistiken 📊</h2>
+                        
+                        <div className={`p-6 rounded-xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
+                            <h3 className="text-xl font-bold mb-4">Diese Woche</h3>
+                            <div className="flex gap-2 justify-around items-end" style={{height: '200px'}}>
+                                {weekDates.map((d, i) => {
+                                    const comp = getDayCompletion(d);
+                                    const color = comp >= 80 ? 'bg-green-500' : comp >= 60 ? 'bg-yellow-500' : 'bg-orange-500';
+                                    const isToday = d.toISOString().split('T')[0] === today.toISOString().split('T')[0];
+                                    return (
+                                        <div key={i} className="text-center flex-1">
+                                            <div className={`w-full rounded-t ${color} transition-all`} 
+                                                style={{height: `${Math.max(comp * 1.5, 10)}px`}}></div>
+                                            <div className={`text-xs mt-2 font-bold ${isToday ? 'text-blue-500' : ''}`}>
+                                                {d.toLocaleDateString('de-DE', {weekday: 'short'})}
+                                            </div>
+                                            <div className="text-xs font-bold">{comp}%</div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className={`p-6 rounded-xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
+                            <h3 className="text-xl font-bold mb-4">Gewohnheiten Übersicht</h3>
+                            {habits.map(h => {
+                                const total = Object.keys(h.completions).length;
+                                const completed = Object.values(h.completions).filter(c => c.completed >= c.target).length;
+                                const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
+                                return (
+                                    <div key={h.id} className={`p-4 rounded-lg mb-3 ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                                        <div className="flex justify-between items-center mb-2">
+                                            <div className="flex items-center gap-2">
+                                                <div className={`w-3 h-3 rounded-full ${colors[h.color]}`}></div>
+                                                <span className="font-bold">{h.name}</span>
+                                            </div>
+                                            <span className="text-2xl font-bold text-green-500">{rate}%</span>
+                                        </div>
+                                        <div className="text-sm text-gray-500 mb-2">
+                                            {completed} von {total} Tagen erfolgreich · 
+                                            {h.rhythm === 'daily' ? ' Täglich' : ` ${h.weeklyDays.map(d => weekDays[d].short).join(', ')}`}
+                                        </div>
+                                        <div className={`h-2 rounded ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`}>
+                                            <div className="h-2 bg-green-500 rounded transition-all" style={{width: `${rate}%`}}></div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                );
+            };
+
+            return (
+                <div className={`min-h-screen p-4 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+                    <div className="max-w-4xl mx-auto">
+                        <div className={`p-6 rounded-xl shadow-xl mb-6 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                            <div className="flex justify-between items-center mb-4">
+                                <div>
+                                    <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                                        Habit Tracker Pro 🎯
+                                    </h1>
+                                    <p className="text-sm text-gray-500">Mit Browser-Benachrichtigungen</p>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button onClick={() => setShowAddModal(true)}
+                                        className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:scale-105 transition-transform font-bold">
+                                        + Neu
+                                    </button>
+                                    <button onClick={() => setDarkMode(!darkMode)}
+                                        className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:scale-105 transition-transform">
+                                        {darkMode ? '☀️' : '🌙'}
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="flex gap-2 flex-wrap">
+                                {[['today','Heute','🏠'],['calendar','Kalender','📅'],['stats','Statistiken','📊']].map(([k,l,i]) => (
+                                    <button key={k} onClick={() => setView(k)}
+                                        className={`px-4 py-2 rounded-lg transition-all ${
+                                            view === k 
+                                                ? 'bg-blue-500 text-white shadow-lg scale-105' 
+                                                : darkMode ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'
+                                        }`}>
+                                        {i} {l}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {view === 'today' && renderToday()}
+                        {view === 'calendar' && renderCalendar()}
+                        {view === 'stats' && renderStats()}
+
+                        {/* Notifications */}
+                        <div className="fixed top-4 right-4 space-y-2 z-50 max-w-sm">
+                            {notifications.map(n => (
+                                <div key={n.id} className={`p-4 rounded-xl shadow-2xl border-l-4 border-blue-500 animate-slide-in ${
+                                    darkMode ? 'bg-gray-800' : 'bg-white'
+                                }`}>
+                                    <div className="flex gap-3">
+                                        <div className="text-3xl">🔔</div>
+                                        <div className="flex-1">
+                                            <div className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                                                Erinnerung: {n.habit.name}
+                                            </div>
+                                            <div className="text-sm text-gray-500 mb-3">
+                                                Ziel: {n.habit.target} {n.habit.unit}
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button onClick={() => { 
+                                                    updateProgress(n.habit.id, true); 
+                                                    setNotifications(prev => prev.filter(x => x.id !== n.id)); 
+                                                }}
+                                                    className="flex-1 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-bold">
+                                                    ✓ Erledigt
+                                                </button>
+                                                <button onClick={() => setNotifications(prev => prev.filter(x => x.id !== n.id))}
+                                                    className="flex-1 px-3 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
+                                                    Später
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <button onClick={() => setNotifications(prev => prev.filter(x => x.id !== n.id))}
+                                            className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Add Modal */}
+                        {showAddModal && (
+                            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                                <div className={`max-w-lg w-full p-6 rounded-xl max-h-[90vh] overflow-y-auto ${
+                                    darkMode ? 'bg-gray-800' : 'bg-white'
+                                }`}>
+                                    <h3 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                                        Neue Gewohnheit hinzufügen
+                                    </h3>
+                                    
+                                    {renderHabitForm(null, false)}
+
+                                    <div className="flex gap-3 mt-6">
+                                        <button onClick={() => {
+                                            setShowAddModal(false);
+                                            setNewHabit({ 
+                                                name: '', category: 'health', target: 1, unit: 'mal', 
+                                                reminderTime: '09:00', color: 'blue', rhythm: 'daily', 
+                                                weeklyDays: ['MO', 'TU', 'WE', 'TH', 'FR'] 
+                                            });
+                                        }}
+                                            className={`flex-1 py-3 border-2 rounded-lg font-bold ${
+                                                darkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-100'
+                                            }`}>
+                                            Abbrechen
+                                        </button>
+                                        <button onClick={addHabit}
+                                            disabled={!newHabit.name.trim() || (newHabit.rhythm === 'weekly' && (!newHabit.weeklyDays || newHabit.weeklyDays.length === 0))}
+                                            className="flex-1 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-bold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed">
+                                            Hinzufügen
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Edit Modal */}
+                        {editingHabit && (
+                            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                                <div className={`max-w-lg w-full p-6 rounded-xl max-h-[90vh] overflow-y-auto ${
+                                    darkMode ? 'bg-gray-800' : 'bg-white'
+                                }`}>
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h3 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                                            Gewohnheit bearbeiten
+                                        </h3>
+                                        <button onClick={() => deleteHabit(editingHabit.id)}
+                                            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 font-bold">
+                                            🗑️ Löschen
+                                        </button>
+                                    </div>
+                                    
+                                    {renderHabitForm(editingHabit, true)}
+
+                                    <div className="flex gap-3 mt-6">
+                                        <button onClick={() => setEditingHabit(null)}
+                                            className={`flex-1 py-3 border-2 rounded-lg font-bold ${
+                                                darkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-100'
+                                            }`}>
+                                            Abbrechen
+                                        </button>
+                                        <button onClick={saveEditedHabit}
+                                            disabled={!editingHabit.name.trim() || (editingHabit.rhythm === 'weekly' && (!editingHabit.weeklyDays || editingHabit.weeklyDays.length === 0))}
+                                            className="flex-1 py-3 bg-gradient-to-r from-green-500 to-blue-600 text-white rounded-lg font-bold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed">
+                                            💾 Speichern
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Quick Stats Footer */}
+                        <div className={`mt-6 p-6 rounded-xl shadow-lg ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                                <div>
+                                    <div className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                                        {habits.length}
+                                    </div>
+                                    <div className="text-sm text-gray-500">Gewohnheiten</div>
+                                </div>
+                                <div>
+                                    <div className="text-3xl font-bold text-green-500">
+                                        {habits.filter(h => {
+                                            const today = new Date().toISOString().split('T')[0];
+                                            if (!isActiveOnDate(h, new Date())) return false;
+                                            const c = h.completions[today] || { completed: 0, target: h.target };
+                                            return c.completed >= c.target;
+                                        }).length}
+                                    </div>
+                                    <div className="text-sm text-gray-500">Heute geschafft</div>
+                                </div>
+                                <div>
+                                    <div className="text-3xl font-bold text-orange-500">
+                                        {habits.filter(h => isActiveOnDate(h, new Date())).length}
+                                    </div>
+                                    <div className="text-sm text-gray-500">Aktiv heute</div>
+                                </div>
+                                <div>
+                                    <div className="text-3xl font-bold text-purple-500">
+                                        {Math.round(getDayCompletion(new Date()))}%
+                                    </div>
+                                    <div className="text-sm text-gray-500">Heute erreicht</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(React.createElement(HabitTracker), document.getElementById('root'));
+    </script>
+</body>
+</html>
